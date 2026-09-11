@@ -4,7 +4,8 @@ import { getServerLive, getServerMods } from '../api'
 import type { AppConfig, LiveServer, ServerMod } from '../api'
 
 const ServerView: Component<{ config?: AppConfig }> = (props) => {
-  const addr = () => props.config()?.defaultServer || '146.66.12.4:2402'
+  const addr = () => props.config?.defaultServer || '146.66.12.4:2402'
+  const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
   const [live, setLive] = createSignal<LiveServer>()
   const [liveErr, setLiveErr] = createSignal<string>()
@@ -23,7 +24,7 @@ const ServerView: Component<{ config?: AppConfig }> = (props) => {
           setLiveErr(undefined)
         }
       } catch (e) {
-        if (!stopped) setLiveErr(String(e.message || e))
+        if (!stopped) setLiveErr(errMsg(e))
       }
     }
     const fetchMods = async () => {
@@ -34,7 +35,7 @@ const ServerView: Component<{ config?: AppConfig }> = (props) => {
           setModsErr(undefined)
         }
       } catch (e) {
-        if (!stopped) setModsErr(String(e.message || e))
+        if (!stopped) setModsErr(errMsg(e))
       } finally {
         if (!stopped) setLoading(false)
       }

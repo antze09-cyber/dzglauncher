@@ -50,7 +50,7 @@ const SettingsPanel: Component<{ compact?: boolean; onSaved?: () => void }> = (p
       setMsg({ text: 'Пути сохранены' })
       props.onSaved?.()
     } catch (e) {
-      setMsg({ text: String(e.message || e), error: true })
+      setMsg({ text: e instanceof Error ? e.message : String(e), error: true })
     } finally {
       setSaving(false)
     }
