@@ -9,6 +9,7 @@ export interface AppConfig {
   defaultServer: string
   mods: ModConf[]
   modParam: string
+  launchParams: string
 }
 
 export interface GameServer {
@@ -60,6 +61,7 @@ export interface LiveServer {
 export interface ModStatus {
   name: string
   workshopId: string
+  resolvedWorkshopId: string
   installed: boolean
   valid: boolean
   path: string
@@ -106,7 +108,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export function getConfig(): Promise<{ mods: ModConf[]; modParam: string; gameName: string; gameId: number; defaultServer: string }> {
+export function getConfig(): Promise<{ mods: ModConf[]; modParam: string; gameName: string; gameId: number; defaultServer: string; launchParams: string }> {
   return request<AppConfig>('/api/config')
 }
 
@@ -156,6 +158,7 @@ export interface Settings {
   gameInstalled: boolean
   workshopFound: boolean
   defaultServer: string
+  launchParams: string
   gameId: number
 }
 
@@ -163,10 +166,10 @@ export function getSettings(): Promise<Settings> {
   return request<Settings>('/api/settings')
 }
 
-export function saveSettings(gameDir: string, workshopDir: string): Promise<Settings> {
+export function saveSettings(gameDir: string, workshopDir: string, launchParams: string): Promise<Settings> {
   return request<Settings>('/api/settings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ gameDir, workshopDir }),
+    body: JSON.stringify({ gameDir, workshopDir, launchParams }),
   })
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// SettingsResponse описывает текущее состояние путей DayZ.
+// SettingsResponse описывает текущее состояние путей DayZ и параметров запуска.
 type SettingsResponse struct {
 	GameDir             string `json:"gameDir"`
 	WorkshopDir         string `json:"workshopDir"`
@@ -16,6 +16,7 @@ type SettingsResponse struct {
 	GameInstalled       bool   `json:"gameInstalled"`
 	WorkshopFound       bool   `json:"workshopFound"`
 	DefaultServer       string `json:"defaultServer"`
+	LaunchParams        string `json:"launchParams"`
 	GameID              int    `json:"gameId"`
 }
 
@@ -32,6 +33,7 @@ func (h *App) buildSettings() SettingsResponse {
 		GameInstalled:       statDir(effGame),
 		WorkshopFound:       statDir(effWorkshop),
 		DefaultServer:       h.Cfg.DefaultServer,
+		LaunchParams:        h.Cfg.LaunchParams,
 		GameID:              h.Cfg.GameID,
 	}
 }
@@ -44,8 +46,9 @@ func (h *App) SettingsHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, h.buildSettings())
 	case http.MethodPost:
 		var body struct {
-			GameDir     string `json:"gameDir"`
-			WorkshopDir string `json:"workshopDir"`
+			GameDir      string `json:"gameDir"`
+			WorkshopDir  string `json:"workshopDir"`
+			LaunchParams string `json:"launchParams"`
 		}
 		if err := decodeJSON(r, &body); err != nil {
 			writeErr(w, http.StatusBadRequest, "invalid body")
@@ -63,6 +66,7 @@ func (h *App) SettingsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		h.Cfg.GameDir = gameDir
 		h.Cfg.WorkshopDir = workshopDir
+		h.Cfg.LaunchParams = strings.TrimSpace(body.LaunchParams)
 		if h.CfgPath != "" {
 			if err := h.Cfg.Save(h.CfgPath); err != nil {
 				writeErr(w, http.StatusInternalServerError, "не удалось сохранить: "+err.Error())

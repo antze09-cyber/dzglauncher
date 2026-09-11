@@ -17,6 +17,7 @@ const App: Component = () => {
   const [missingNow, setMissingNow] = createSignal<ModStatus[]>()
   const [settings, setSettings] = createSignal<Settings>()
   const [setupOpen, setSetupOpen] = createSignal(false)
+  const [password, setPassword] = createSignal('')
 
   createEffect(() => {
     getConfig()
@@ -52,7 +53,7 @@ const App: Component = () => {
     setLaunching(true)
     setLaunchMsg(undefined)
     try {
-      const res = await launchDayZ(targetAddr(), '')
+      const res = await launchDayZ(targetAddr(), password())
       setLaunchMsg({ text: `Steam запущен: ${res.url}` })
     } catch (e) {
       setLaunchMsg({ text: String(e), error: true })
@@ -148,6 +149,13 @@ const App: Component = () => {
         >
           <div class="status warn">Не установлено модов: {missingNow()!.length}</div>
         </Show>
+        <input
+          class="pwd"
+          type="password"
+          placeholder="Пароль (если есть)"
+          value={password()}
+          oninput={(e) => setPassword(e.currentTarget.value)}
+        />
         <button class="btn primary" onClick={doLaunch} disabled={launching()}>
           {launching() ? 'Запуск...' : 'Играть'}
         </button>

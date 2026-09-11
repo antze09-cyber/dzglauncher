@@ -40,6 +40,8 @@ const ModManager: Component<{ config?: AppConfig }> = () => {
     }
   }
 
+  const subId = (m: ModStatus) => m.workshopId || m.resolvedWorkshopId
+
   return (
     <div class="panel mods">
       <div class="toolbar">
@@ -81,30 +83,50 @@ const ModManager: Component<{ config?: AppConfig }> = () => {
                   </Show>
                 </div>
                 <Show when={!m.installed} fallback={null}>
-                  <div class="search-result">
-                    <Show when={searching() === m.name} fallback={null}>
-                      <div style="color: var(--text-dim);">Поиск в мастерской...</div>
-                    </Show>
-                    <Show when={searches()[m.name] && searches()[m.name]!.length > 0} fallback={null}>
-                      <For each={searches()[m.name]}>
-                        {(item) => (
-                          <Show when={!searching()}>
-                            <a href={item.url} target="_blank" rel="noopener noreferrer">
-                              ▼ {item.title}
-                            </a>
-                          </Show>
-                        )}
-                      </For>
-                    </Show>
-                    <Show
-                      when={!searches()[m.name] && searching() !== m.name}
-                      fallback={null}
-                    >
-                      <button class="btn" onClick={() => search(m.name)}>
-                        Найти в мастерской
-                      </button>
-                    </Show>
-                  </div>
+                  <Show when={subId(m)} fallback={null}>
+                    <div class="search-result">
+                      <a class="btn" href={`steam://url/CommunityFilePage/${subId(m)}`}>
+                        Подписаться в Steam
+                      </a>
+                      <a
+                        class="ws-link"
+                        href={`https://steamcommunity.com/sharedfiles/filedetails/?id=${subId(m)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Страница в мастерской
+                      </a>
+                      <Show when={!m.workshopId && m.resolvedWorkshopId}>
+                        <div class="mod-note">ID подобрано автоматически по модам сервера: {m.resolvedWorkshopId}</div>
+                      </Show>
+                    </div>
+                  </Show>
+                  <Show when={!subId(m)} fallback={null}>
+                    <div class="search-result">
+                      <Show when={searching() === m.name} fallback={null}>
+                        <div style="color: var(--text-dim);">Поиск в мастерской...</div>
+                      </Show>
+                      <Show when={searches()[m.name] && searches()[m.name]!.length > 0} fallback={null}>
+                        <For each={searches()[m.name]}>
+                          {(item) => (
+                            <Show when={!searching()}>
+                              <a href={item.url} target="_blank" rel="noopener noreferrer">
+                                ▼ {item.title}
+                              </a>
+                            </Show>
+                          )}
+                        </For>
+                      </Show>
+                      <Show
+                        when={!searches()[m.name] && searching() !== m.name}
+                        fallback={null}
+                      >
+                        <button class="btn" onClick={() => search(m.name)}>
+                          Найти в мастерской
+                        </button>
+                      </Show>
+                    </div>
+                  </Show>
                 </Show>
               </div>
             )}

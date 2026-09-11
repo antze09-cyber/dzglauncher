@@ -7,6 +7,7 @@ const SettingsPanel: Component<{ compact?: boolean; onSaved?: () => void }> = (p
   const [settings, setSettings] = createSignal<Settings>()
   const [gameDir, setGameDir] = createSignal('')
   const [workshopDir, setWorkshopDir] = createSignal('')
+  const [launchParams, setLaunchParams] = createSignal('')
   const [loading, setLoading] = createSignal(true)
   const [saving, setSaving] = createSignal(false)
   const [detecting, setDetecting] = createSignal(false)
@@ -18,6 +19,7 @@ const SettingsPanel: Component<{ compact?: boolean; onSaved?: () => void }> = (p
         setSettings(s)
         setGameDir(s.overrideGameDir || s.detectedGameDir || '')
         setWorkshopDir(s.overrideWorkshopDir || s.detectedWorkshopDir || '')
+        setLaunchParams(s.launchParams || '')
       })
       .catch((e) => setMsg({ text: String(e.message || e), error: true }))
       .finally(() => setLoading(false))
@@ -43,7 +45,7 @@ const SettingsPanel: Component<{ compact?: boolean; onSaved?: () => void }> = (p
     setSaving(true)
     setMsg(undefined)
     try {
-      const s = await saveSettings(gameDir().trim(), workshopDir().trim())
+      const s = await saveSettings(gameDir().trim(), workshopDir().trim(), launchParams().trim())
       setSettings(s)
       setMsg({ text: 'Пути сохранены' })
       props.onSaved?.()
@@ -103,6 +105,21 @@ const SettingsPanel: Component<{ compact?: boolean; onSaved?: () => void }> = (p
               Найдено: <code>{cur()!.detectedWorkshopDir}</code>
             </div>
           </Show>
+        </div>
+
+        <div class="settings-row">
+          <label>Параметры запуска DayZ</label>
+          <div class="settings-input">
+            <input
+              value={launchParams()}
+              onChange={(e) => setLaunchParams(e.currentTarget.value)}
+              placeholder="-noSplash -noBenchmark -noVideo (необязательно)"
+            />
+          </div>
+          <div class="settings-hint">
+            Дополнительные параметры командной строки, добавляются к запуску Steam.
+            Примеры: <code>-noSplash</code> <code>-noBenchmark</code> <code>-noVideo</code> <code>-noLogs</code>
+          </div>
         </div>
 
         <div class="settings-status">

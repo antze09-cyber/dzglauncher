@@ -19,6 +19,7 @@ type Config struct {
 	Port          int    `json:"port"`
 	GameDir       string `json:"gameDir"`
 	WorkshopDir   string `json:"workshopDir"`
+	LaunchParams  string `json:"launchParams"`
 	Mods          []Mod  `json:"mods"`
 }
 

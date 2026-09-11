@@ -6,6 +6,7 @@
   "port": 8080,
   "gameDir": "",
   "workshopDir": "",
+  "launchParams": "",
   "mods": [
     { "name": "@CF", "workshopId": "" },
     { "name": "@Dabs Framework", "workshopId": "" },

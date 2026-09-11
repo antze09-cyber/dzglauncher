@@ -6,7 +6,7 @@ import (
 )
 
 func TestBuildLaunchURL(t *testing.T) {
-	u := buildLaunchURL(221100, "146.66.12.4:2402", "", "@CF;@WOC_RP")
+	u := buildLaunchURL(221100, "146.66.12.4:2402", "", "@CF;@WOC_RP", "")
 	if !strings.HasPrefix(u, "steam://rungameid/221100//-connect=146.66.12.4:2402") {
 		t.Fatalf("bad url: %s", u)
 	}
@@ -14,8 +14,11 @@ func TestBuildLaunchURL(t *testing.T) {
 		t.Fatalf("missing mods: %s", u)
 	}
 
-	up := buildLaunchURL(221100, "1.2.3.4:2302", "secret", "@CF")
+	up := buildLaunchURL(221100, "1.2.3.4:2302", "secret", "@CF", "-noSplash -noBenchmark")
 	if !strings.Contains(up, "-password=secret") {
 		t.Fatalf("missing password: %s", up)
+	}
+	if !strings.HasSuffix(up, "-noSplash -noBenchmark") {
+		t.Fatalf("missing launch params: %s", up)
 	}
 }

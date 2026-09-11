@@ -25,7 +25,7 @@ func (h *App) LaunchHandler(w http.ResponseWriter, r *http.Request) {
 	if addr == "" {
 		addr = h.Cfg.DefaultServer
 	}
-	launchURL := buildLaunchURL(h.Cfg.GameID, addr, body.Password, h.Cfg.ModParam())
+	launchURL := buildLaunchURL(h.Cfg.GameID, addr, body.Password, h.Cfg.ModParam(), h.Cfg.LaunchParams)
 	if err := openURL(launchURL); err != nil {
 		writeErr(w, http.StatusInternalServerError, "не удалось запустить Steam: "+err.Error())
 		return
@@ -34,14 +34,17 @@ func (h *App) LaunchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // buildLaunchURL собирает URL вида:
-// steam://rungameid/221100//-connect=IP:PORT -password=... -mod=@CF;@Dabs;...
-func buildLaunchURL(gameID int, addr, password, modParam string) string {
+// steam://rungameid/221100//-connect=IP:PORT -password=... -mod=@CF;@Dabs;... [launchParams]
+func buildLaunchURL(gameID int, addr, password, modParam, launchParams string) string {
 	s := "steam://rungameid/" + strconv.Itoa(gameID) + "//-connect=" + addr
 	if password != "" {
 		s += " -password=" + password
 	}
 	if modParam != "" {
 		s += " -mod=" + modParam
+	}
+	if launchParams != "" {
+		s += " " + launchParams
 	}
 	return s
 }

@@ -503,6 +503,21 @@ tbody tr.selected {
   color: var(--warn);
 }
 
+.launchbar .pwd {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 7px 10px;
+  font-size: 13px;
+  max-width: 150px;
+}
+
+.launchbar .pwd:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 /* Modal */
 .modal-overlay {
   position: fixed;
@@ -778,6 +793,17 @@ tbody tr.selected {
 
 .search-result a:hover {
   text-decoration: underline;
+}
+
+.search-result .btn {
+  margin-right: 8px;
+  text-decoration: none;
+}
+
+.mod-note {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
 }
 
 .fmt {

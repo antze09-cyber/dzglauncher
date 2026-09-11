@@ -11,14 +11,21 @@ import (
 )
 
 type App struct {
-	Cfg     *config.Config
-	CfgPath string
-	Steam   *steam.Client
-	A2S     *a2s.Client
+	Cfg             *config.Config
+	CfgPath         string
+	Steam           *steam.Client
+	A2S             *a2s.Client
+	resolvedCache   map[string]string
+	resolvedQueried bool
 }
 
 func NewApp(cfg *config.Config) *App {
-	return &App{Cfg: cfg, Steam: steam.New(cfg.SteamAPIKey), A2S: a2s.New()}
+	return &App{
+		Cfg:           cfg,
+		Steam:         steam.New(cfg.SteamAPIKey),
+		A2S:           a2s.New(),
+		resolvedCache: map[string]string{},
+	}
 }
 
 // ConfigHandler возвращает публичную конфигурацию лаунчера.
@@ -33,6 +40,7 @@ func (h *App) ConfigHandler(w http.ResponseWriter, r *http.Request) {
 		"defaultServer": h.Cfg.DefaultServer,
 		"mods":          h.Cfg.Mods,
 		"modParam":      h.Cfg.ModParam(),
+		"launchParams":  h.Cfg.LaunchParams,
 	})
 }
 
@@ -85,14 +93,14 @@ func (h *App) ServerLiveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Переиспользуем живые данные A2S вместо Steam
 	writeJSON(w, http.StatusOK, map[string]any{
-		"addr":   addr,
-		"name":   info.Name,
-		"map":    info.Map,
-		"game":   info.Game,
-		"folder": info.Folder,
-		"appId":  info.GameID,
-		"version": info.Version,
-		"players":   info.Players,
+		"addr":       addr,
+		"name":       info.Name,
+		"map":        info.Map,
+		"game":       info.Game,
+		"folder":     info.Folder,
+		"appId":      info.GameID,
+		"version":    info.Version,
+		"players":    info.Players,
 		"maxPlayers": info.MaxPlayers,
 		"bots":       info.Bots,
 		"keywords":   info.Keywords,
@@ -114,40 +122,20 @@ func (h *App) ServerModsHandler(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, "missing addr")
 		return
 	}
-	info, _, err := h.A2S.Info(addr)
+	keywords, sm, err := h.fetchServerMods(addr)
 	if err != nil {
 		writeErr(w, http.StatusGatewayTimeout, "a2s info: "+err.Error())
 		return
 	}
-	ids := a2s.ParseModsFromKeywords(info.Keywords)
-	if len(ids) == 0 {
-		writeJSON(w, http.StatusOK, map[string]any{
-			"addr":     addr,
-			"keywords": info.Keywords,
-			"mods":     []map[string]any{},
-		})
-		return
-	}
-
 	_, workshopDir := h.effectiveDirs()
-	details, _ := h.Steam.PublishedFileDetails(ids)
-	byID := make(map[string]struct {
-		Title string
-	}, len(details))
-	for _, d := range details {
-		byID[d.ID] = struct {
-			Title string
-		}{Title: d.Title}
-	}
-
-	mods := make([]map[string]any, 0, len(ids))
-	for _, id := range ids {
+	mods := make([]map[string]any, 0, len(sm))
+	for _, m := range sm {
 		installed := false
 		valid := false
 		var issues []string
 		path := ""
 		if workshopDir != "" {
-			p := filepath.Join(workshopDir, id)
+			p := filepath.Join(workshopDir, m.ID)
 			if fi, err := os.Stat(p); err == nil && fi.IsDir() {
 				installed = true
 				path = p
@@ -157,8 +145,8 @@ func (h *App) ServerModsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		mods = append(mods, map[string]any{
-			"workshopId": id,
-			"title":      byID[id].Title,
+			"workshopId": m.ID,
+			"title":      m.Title,
 			"installed":  installed,
 			"valid":      valid,
 			"path":       path,
@@ -166,11 +154,11 @@ func (h *App) ServerModsHandler(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
-		"addr":       addr,
+		"addr":        addr,
 		"workshopDir": workshopDir,
-		"keywords":   info.Keywords,
-		"count":      len(mods),
-		"mods":       mods,
+		"keywords":    keywords,
+		"count":       len(mods),
+		"mods":        mods,
 	})
 }
 
@@ -201,10 +189,10 @@ func (h *App) ServersLiveHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			results <- map[string]any{
-				"addr":   a,
-				"name":   info.Name,
-				"map":    info.Map,
-				"players":   info.Players,
+				"addr":       a,
+				"name":       info.Name,
+				"map":        info.Map,
+				"players":    info.Players,
 				"maxPlayers": info.MaxPlayers,
 				"bots":       info.Bots,
 				"version":    info.Version,
