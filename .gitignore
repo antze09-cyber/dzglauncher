@@ -1,0 +1,22 @@
+# Секреты — НЕ коммитить
+config.json
+
+# Сборка
+dist/
+*.syso
+*.exe
+
+# Frontend (пересобирается)
+frontend/node_modules/
+frontend/dist/
+
+# Локальные ресурсы (icos generated)
+resources/app.ico
+
+# Исходник фона (уже продублирован в frontend/public/bg.png)
+backgroud/
+
+# Временные файлы
+*.log
+*.tmp
+wintest.go
